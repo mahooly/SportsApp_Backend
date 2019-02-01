@@ -13,11 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls import url
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, re_path
 from django.urls import path
 from rest_framework import routers
 from SportsApp import views
+from WebProject import settings
 from rest_framework_jwt.views import obtain_jwt_token
 from rest_auth.registration.views import VerifyEmailView, RegisterView, LoginView
 from rest_auth.views import PasswordResetView, PasswordResetConfirmView
@@ -31,9 +34,12 @@ router.register(r'players', views.PlayerListView, 'players')
 router.register(r'leagues', views.NewsArticleListView, 'leagues')
 router.register(r'register', views.UserCreate, 'register')
 router.register(r'user_teams', views.UserTeamView, 'user_teams')
+router.register(r'user_players', views.UserPlayerView, 'user_players')
+router.register(r'comments', views.CommentView, 'comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    url('^api/matches/(?P<name>.+)/$', views.TeamMatchList.as_view()),
     path('api/', include(router.urls)),
     path('rest-auth/', include('rest_auth.urls')),
     path('rest-auth/login/', LoginView.as_view(), name='account_login'),
@@ -46,4 +52,4 @@ urlpatterns = [
     re_path(r'^rest-auth/registration/account-confirm-email/(?P<key>.+)/$', VerifyEmailView.as_view(),
             name='account_confirm_email'),
     path('token-auth/', obtain_jwt_token)
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

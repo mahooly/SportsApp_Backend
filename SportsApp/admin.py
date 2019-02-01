@@ -9,6 +9,8 @@ from .forms import AddEventForm
 from .models import *
 from datetime import datetime, timedelta
 
+admin.site.site_header = 'SportsApp Admin Dashboard'
+
 
 class MatchEventInline(admin.TabularInline):
     model = MatchEvent
@@ -20,7 +22,7 @@ class MatchStatsInline(admin.StackedInline):
     model = MatchStats
 
 
-class MatchTypeFilter(admin.SimpleListFilter):
+class TypeFilter(admin.SimpleListFilter):
     title = 'type'
     parameter_name = 'type'
 
@@ -59,7 +61,8 @@ class MatchAdmin(admin.ModelAdmin):
     list_display = ['name', 'increase_score_one', 'team1_name', 'score1', 'score2', 'team2_name', 'increase_score_two',
                     'event_actions']
     inlines = [MatchEventInline, MatchStatsInline]
-    list_filter = [MatchTypeFilter, MatchOngoingFilter, 'date']
+    list_filter = [TypeFilter, MatchOngoingFilter, 'date']
+    search_fields = ['team1_name', 'team2_name']
 
     def name(self, obj):
         return str(obj)
@@ -255,6 +258,9 @@ class CoachingStaffInline(admin.StackedInline):
 
 
 class TeamAdmin(admin.ModelAdmin):
+    list_display = ['name', 'type']
+    list_filter = [TypeFilter]
+    search_fields = ['name',]
     inlines = [CoachingStaffInline]
 
 
@@ -263,11 +269,14 @@ class CommentInline(admin.TabularInline):
 
 
 class NewsArticleAdmin(admin.ModelAdmin):
+    list_display = ['title', 'description', 'type', 'date']
+    list_filter = ['date', TypeFilter]
     inlines = [CommentInline]
 
 
 class PlayerStatsAdmin(admin.ModelAdmin):
-    list_display = ['player_name', 'season', 'name', 'value']
+    list_display = ['player_name', 'season', 'name', 'value', 'event_actions']
+    search_fields = ['player_season__player__name', 'player_season__season']
 
     def player_name(self, obj):
         return obj.player_season.player.name
@@ -275,17 +284,167 @@ class PlayerStatsAdmin(admin.ModelAdmin):
     def season(self, obj):
         return obj.player_season.season
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            url(
+                r'^(?P<player_stat_id>.+)/add_event/$',
+                self.admin_site.admin_view(self.process_event),
+                name='add_value',
+            ),
+        ]
+        return custom_urls + urls
+
+    def event_actions(self, obj):
+        return format_html(
+            '<a class="button" href="{}">Add Value</a>&nbsp;',
+            reverse('admin:add_value', args=[obj.pk]),
+        )
+
+    event_actions.short_description = 'Add Value'
+    event_actions.allow_tags = True
+
+    def process_event(self, request, player_stat_id, *args, **kwargs):
+        return self.process_action(
+            request=request,
+            player_stat_id=player_stat_id,
+            action_title='Add Value',
+        )
+
+    def process_action(self, request, player_stat_id, action_title):
+        player_stat = self.get_object(request, player_stat_id)
+        player_stat.value += 1
+        player_stat.save()
+        return HttpResponseRedirect('/admin/SportsApp/playerstat')
+
+
+class LeagueAdmin(admin.ModelAdmin):
+    list_display = ['name', 'type', 'is_ongoing', 'start_date']
+    list_filter = ['start_date', 'is_ongoing']
+
+
+class PlayerStatsInline(admin.TabularInline):
+    model = PlayerStat
+
+
+class PlayerSeasonAdmin(admin.ModelAdmin):
+    list_display = ['player', 'season']
+    search_fields = ['player__name']
+    inlines = [PlayerStatsInline,]
+
+
+class MatchStatAdmin(admin.ModelAdmin):
+    list_display = ['name', 'match_team1_name', 'first', 'event_actions_first', 'match_team2_name', 'second', 'event_actions_second']
+    search_fields = ['match__team1__name', 'match__team2__name', 'name']
+    list_filter = ['match__date']
+
+    def match_team1_name(self, obj):
+        return obj.match.team1.name
+
+    def match_team2_name(self, obj):
+        return obj.match.team2.name
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            url(
+                r'^(?P<match_stat_id>.+)/add_first/$',
+                self.admin_site.admin_view(self.process_event_first),
+                name='add_first',
+            ),
+            url(
+                r'^(?P<match_stat_id>.+)/add_second/$',
+                self.admin_site.admin_view(self.process_event_second),
+                name='add_second',
+            ),
+        ]
+        return custom_urls + urls
+
+    def event_actions_first(self, obj):
+        return format_html(
+            '<a class="button" href="{}">Add</a>',
+            reverse('admin:add_first', args=[obj.pk]),
+        )
+
+    event_actions_first.short_description = 'Add'
+    event_actions_first.allow_tags = True
+
+    def event_actions_second(self, obj):
+        return format_html(
+            '<a class="button" href="{}">Add</a>',
+            reverse('admin:add_second', args=[obj.pk]),
+        )
+
+    event_actions_second.short_description = 'Add'
+    event_actions_second.allow_tags = True
+
+    def process_event_first(self, request, match_stat_id, *args, **kwargs):
+        return self.process_action(
+            request=request,
+            match_stat_id=match_stat_id,
+            action_title='Add First',
+        )
+
+    def process_event_second(self, request, match_stat_id, *args, **kwargs):
+        return self.process_action(
+            request=request,
+            match_stat_id=match_stat_id,
+            action_title='Add Second',
+        )
+
+    def process_action(self, request, match_stat_id, action_title):
+        match_stat = self.get_object(request, match_stat_id)
+        if action_title == 'Add First':
+            match_stat.first += 1
+            match_stat.save()
+        elif action_title == 'Add Second':
+            match_stat.second += 1
+            match_stat.save()
+        return HttpResponseRedirect('/admin/SportsApp/matchstats')
+
+
+class PlayerAdmin(admin.ModelAdmin):
+    list_display = ['name', 'age', 'height', 'weight', 'nationality', 'teams']
+
+    def teams(self, obj):
+        team_positions = TeamPosition.objects.filter(player=obj)
+        teams = []
+        for t in team_positions:
+            teams.append(t.team.name)
+        return teams
+
+
+class TeamPositionsAdmin(admin.ModelAdmin):
+    list_display = ['team', 'player', 'position']
+    search_fields = ['team__name', 'player__name', 'position']
+
+
+class UserFollowPlayerAdmin(admin.ModelAdmin):
+    list_display = ['user', 'player']
+    search_fields = ['player__name']
+
+
+class UserFollowTeamAdmin(admin.ModelAdmin):
+    list_display = ['user', 'team']
+    search_fields = ['team__name']
+
+
+class MatchEventAdmin(admin.ModelAdmin):
+    list_display = ['match', 'title', 'comment', 'time']
+    list_filter = ['time']
+
 admin.site.register(Tag)
 admin.site.register(NewsArticle, NewsArticleAdmin)
 admin.site.register(Comment)
-admin.site.register(Player)
-admin.site.register(TeamPosition)
+admin.site.register(Player, PlayerAdmin)
+admin.site.register(TeamPosition, TeamPositionsAdmin)
 admin.site.register(Team, TeamAdmin)
-admin.site.register(League)
+admin.site.register(League, LeagueAdmin)
 admin.site.register(CoachingStaff)
 admin.site.register(Match, MatchAdmin)
-admin.site.register(MatchEvent)
-admin.site.register(MatchStats)
-admin.site.register(UserFollowTeam)
-admin.site.register(PlayerSeason)
+admin.site.register(MatchEvent, MatchEventAdmin)
+admin.site.register(MatchStats, MatchStatAdmin)
+admin.site.register(UserFollowTeam, UserFollowTeamAdmin)
+admin.site.register(UserFollowPlayer, UserFollowPlayerAdmin)
+admin.site.register(PlayerSeason, PlayerSeasonAdmin)
 admin.site.register(PlayerStat, PlayerStatsAdmin)

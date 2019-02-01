@@ -1,4 +1,7 @@
+from django.db.models import Q
 from rest_framework import filters
+
+from SportsApp.models import Team
 
 
 class NewsFilterBackend(filters.BaseFilterBackend):
@@ -13,10 +16,10 @@ class NewsFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
-# class MatchOrderingFilterBackend(filters.OrderingFilter):
-#     def filter_queryset(self, request, queryset, view):
-#         for key in request.GET.keys():
-#             if key == 'ordering':
-#                 if request.GET['ordering'] == 'opp':
-#                     return queryset.order_by(team2)
-#         return queryset
+class MatchOrderingFilterBackend(filters.OrderingFilter):
+    def filter_queryset(self, request, queryset, view):
+        name = view.kwargs['name']
+        for key in request.GET.keys():
+            if key == 'ordering':
+                print(Team.objects.get(name=name).team2)
+        return queryset
