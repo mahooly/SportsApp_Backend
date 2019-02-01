@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework import viewsets
+from rest_framework.views import APIView
+
 from .serializers import *
 from .filters import NewsFilterBackend, MatchOrderingFilterBackend
 
@@ -100,3 +102,10 @@ class TeamMatchList(generics.ListAPIView):
     def get_queryset(self):
         name = self.kwargs['name']
         return Match.objects.filter(Q(team1__name=name) | Q(team2__name=name))
+
+
+class CurrentUserView(APIView):
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)

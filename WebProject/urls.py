@@ -40,6 +40,7 @@ router.register(r'comments', views.CommentView, 'comments')
 urlpatterns = [
     path('admin/', admin.site.urls),
     url('^api/matches/(?P<name>.+)/$', views.TeamMatchList.as_view()),
+    url('^api/users/current', views.CurrentUserView.as_view()),
     path('api/', include(router.urls)),
     path('rest-auth/', include('rest_auth.urls')),
     path('rest-auth/login/', LoginView.as_view(), name='account_login'),
