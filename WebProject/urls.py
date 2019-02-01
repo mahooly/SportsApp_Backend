@@ -14,10 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include
+from django.urls import include, re_path
 from django.urls import path
 from rest_framework import routers
 from SportsApp import views
+from rest_framework_jwt.views import obtain_jwt_token
+from rest_auth.registration.views import VerifyEmailView, RegisterView, LoginView
+from rest_auth.views import PasswordResetView, PasswordResetConfirmView
+
 
 router = routers.DefaultRouter()
 router.register(r'news', views.NewsArticleListView, 'news')
@@ -32,4 +36,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('rest-auth/', include('rest_auth.urls')),
+    path('rest-auth/login/', LoginView.as_view(), name='account_login'),
+    path('rest-auth/registration/', include('rest_auth.registration.urls')),
+    path('registration/', RegisterView.as_view(), name='account_signup'),
+    path('rest-auth/password/reset/', PasswordResetView.as_view(), name='password_reset'),
+    path('rest-auth/password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    re_path(r'^rest-auth/registration/account-confirm-email/', VerifyEmailView.as_view(),
+            name='account_email_verification_sent'),
+    re_path(r'^rest-auth/registration/account-confirm-email/(?P<key>.+)/$', VerifyEmailView.as_view(),
+            name='account_confirm_email'),
+    path('token-auth/', obtain_jwt_token)
 ]

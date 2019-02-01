@@ -31,6 +31,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email', 'password')
 
 
+class LoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    password = serializers.CharField(min_length=8)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password')
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
