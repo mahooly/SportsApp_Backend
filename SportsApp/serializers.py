@@ -61,8 +61,15 @@ class TeamPositionSerializer(serializers.ModelSerializer):
         fields = ('team', 'position')
 
 
+class PlayerIDSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Player
+        fields = ('id', 'name')
+
+
 class PlayerPositionSerializer(serializers.ModelSerializer):
-    player = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    player = PlayerIDSerializer(read_only=True)
 
     class Meta:
         model = TeamPosition
@@ -125,6 +132,8 @@ class MatchSerializer(serializers.ModelSerializer):
     team2 = serializers.SlugRelatedField(read_only=True, slug_field='name')
     player1 = PlayerPositionSerializer(many=True)
     player2 = PlayerPositionSerializer(many=True)
+    sub1 = PlayerPositionSerializer(many=True)
+    sub2 = PlayerPositionSerializer(many=True)
     league = serializers.SlugRelatedField(read_only=True, slug_field='name')
     events = MatchEventsSerializer(many=True)
     stats = MatchStatsSerializer(many=True)

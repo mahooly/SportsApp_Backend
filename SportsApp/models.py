@@ -125,6 +125,7 @@ class Match(models.Model):
 
     class Meta:
         verbose_name_plural = 'Matches'
+        ordering = ['-date']
 
 
 class MatchEvent(models.Model):

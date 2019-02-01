@@ -4,15 +4,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import *
+from rest_framework import filters
 from rest_framework import viewsets
 from .serializers import *
-from .filters import *
+from .filters import NewsFilterBackend
 
 
 class NewsArticleListView(viewsets.ModelViewSet):
     serializer_class = NewsArticleSerializer
     queryset = NewsArticle.objects.all()
-    filter_backends = (NewsFilterBackend,)
+    filter_backends = (NewsFilterBackend, filters.SearchFilter,)
+    search_fields = ('title', 'text', 'tags__name', 'type')
 
 
 class PlayerListView(viewsets.ModelViewSet):
@@ -28,6 +30,8 @@ class TeamListView(viewsets.ModelViewSet):
 class MatchListView(viewsets.ModelViewSet):
     serializer_class = MatchSerializer
     queryset = Match.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('team1__name', 'team2__name')
 
 
 class LeagueListView(viewsets.ModelViewSet):

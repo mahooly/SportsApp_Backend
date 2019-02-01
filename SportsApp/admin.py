@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from django.contrib import admin
+from django.db.models import Sum, Count
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -55,9 +56,10 @@ class MatchOngoingFilter(admin.SimpleListFilter):
 
 
 class MatchAdmin(admin.ModelAdmin):
-    list_display = ['name', 'increase_score_one', 'team1_name', 'score1', 'score2', 'team2_name', 'increase_score_two', 'event_actions']
+    list_display = ['name', 'increase_score_one', 'team1_name', 'score1', 'score2', 'team2_name', 'increase_score_two',
+                    'event_actions']
     inlines = [MatchEventInline, MatchStatsInline]
-    list_filter = [MatchTypeFilter, MatchOngoingFilter]
+    list_filter = [MatchTypeFilter, MatchOngoingFilter, 'date']
 
     def name(self, obj):
         return str(obj)
@@ -264,6 +266,15 @@ class NewsArticleAdmin(admin.ModelAdmin):
     inlines = [CommentInline]
 
 
+class PlayerStatsAdmin(admin.ModelAdmin):
+    list_display = ['player_name', 'season', 'name', 'value']
+
+    def player_name(self, obj):
+        return obj.player_season.player.name
+
+    def season(self, obj):
+        return obj.player_season.season
+
 admin.site.register(Tag)
 admin.site.register(NewsArticle, NewsArticleAdmin)
 admin.site.register(Comment)
@@ -277,4 +288,4 @@ admin.site.register(MatchEvent)
 admin.site.register(MatchStats)
 admin.site.register(UserFollowTeam)
 admin.site.register(PlayerSeason)
-admin.site.register(PlayerStat)
+admin.site.register(PlayerStat, PlayerStatsAdmin)
