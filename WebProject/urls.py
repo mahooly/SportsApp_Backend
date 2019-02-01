@@ -46,10 +46,12 @@ urlpatterns = [
     path('rest-auth/registration/', include('rest_auth.registration.urls')),
     path('registration/', RegisterView.as_view(), name='account_signup'),
     path('rest-auth/password/reset/', PasswordResetView.as_view(), name='password_reset'),
-    path('rest-auth/password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    re_path(
+        r'^rest-auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     re_path(r'^rest-auth/registration/account-confirm-email/', VerifyEmailView.as_view(),
             name='account_email_verification_sent'),
-    re_path(r'^rest-auth/registration/account-confirm-email/(?P<key>.+)/$', VerifyEmailView.as_view(),
+    re_path(r'^rest-auth/registration/account-confirm-email/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', VerifyEmailView.as_view(),
             name='account_confirm_email'),
     path('token-auth/', obtain_jwt_token)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
