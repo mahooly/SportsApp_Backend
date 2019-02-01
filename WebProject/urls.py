@@ -13,11 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls import url
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include
 from django.urls import path
 from rest_framework import routers
 from SportsApp import views
+from WebProject import settings
 
 router = routers.DefaultRouter()
 router.register(r'news', views.NewsArticleListView, 'news')
@@ -27,9 +30,13 @@ router.register(r'players', views.PlayerListView, 'players')
 router.register(r'leagues', views.NewsArticleListView, 'leagues')
 router.register(r'register', views.UserCreate, 'register')
 router.register(r'user_teams', views.UserTeamView, 'user_teams')
+router.register(r'user_players', views.UserPlayerView, 'user_players')
+router.register(r'comments', views.CommentView, 'comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    url('^api/matches/(?P<name>.+)/$', views.TeamMatchList.as_view()),
     path('api/', include(router.urls)),
     path('rest-auth/', include('rest_auth.urls')),
-]
+
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

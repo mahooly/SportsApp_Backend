@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
+        fields = ('username', 'first_name', 'last_name')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -47,10 +47,11 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class NewsArticleSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
+    comments = CommentSerializer(many=True)
 
     class Meta:
         model = NewsArticle
-        fields = ('id', 'title', 'description', 'text', 'date', 'tags')
+        fields = ('id', 'title', 'description', 'text', 'date', 'tags', 'comments')
 
 
 class TeamPositionSerializer(serializers.ModelSerializer):
@@ -127,9 +128,15 @@ class MatchEventsSerializer(serializers.ModelSerializer):
         exclude = ('match', 'id')
 
 
+class MatchTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = ('id', 'name', 'logo')
+
+
 class MatchSerializer(serializers.ModelSerializer):
-    team1 = serializers.SlugRelatedField(read_only=True, slug_field='name')
-    team2 = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    team1 = MatchTeamSerializer(read_only=True)
+    team2 = MatchTeamSerializer(read_only=True)
     player1 = PlayerPositionSerializer(many=True)
     player2 = PlayerPositionSerializer(many=True)
     sub1 = PlayerPositionSerializer(many=True)
