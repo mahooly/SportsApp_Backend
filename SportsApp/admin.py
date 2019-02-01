@@ -9,6 +9,8 @@ from .forms import AddEventForm
 from .models import *
 from datetime import datetime, timedelta
 
+admin.site.site_header = 'SportsApp Admin Dashboard'
+
 
 class MatchEventInline(admin.TabularInline):
     model = MatchEvent

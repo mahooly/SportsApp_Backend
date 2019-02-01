@@ -51,7 +51,7 @@ class NewsArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NewsArticle
-        fields = ('id', 'title', 'description', 'text', 'date', 'tags', 'comments')
+        fields = ('id', 'title', 'description', 'text', 'date', 'tags', 'comments', 'image')
 
 
 class TeamPositionSerializer(serializers.ModelSerializer):
