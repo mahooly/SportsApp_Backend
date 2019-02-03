@@ -149,6 +149,18 @@ class MatchTeamSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'logo')
 
 
+class MatchImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchImages
+        fields = ('image', 'caption')
+
+
+class MatchVideosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchVideos
+        fields = ('video', 'caption')
+
+
 class MatchSerializer(serializers.ModelSerializer):
     team1 = MatchTeamSerializer(read_only=True)
     team2 = MatchTeamSerializer(read_only=True)
@@ -159,13 +171,25 @@ class MatchSerializer(serializers.ModelSerializer):
     league = serializers.SlugRelatedField(read_only=True, slug_field='name')
     events = MatchEventsSerializer(many=True)
     stats = MatchStatsSerializer(many=True)
+    images = MatchImagesSerializer(many=True)
+    videos = MatchVideosSerializer(many=True)
 
     class Meta:
         model = Match
         fields = '__all__'
 
 
+class LeagueStandingSerializer(serializers.ModelSerializer):
+    team = MatchTeamSerializer(read_only=True)
+
+    class Meta:
+        model = LeagueStanding
+        fields = ('team', 'score')
+
+
 class LeagueSerializer(serializers.ModelSerializer):
+    standings = LeagueStandingSerializer(many=True)
+
     class Meta:
         model = League
         fields = '__all__'

@@ -168,3 +168,24 @@ class UserFollowPlayer(models.Model):
 
     class Meta:
         unique_together = ('user', 'player')
+
+
+class LeagueStanding(models.Model):
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name='standings')
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    score = models.IntegerField()
+
+    class Meta:
+        ordering = ['-score']
+
+
+class MatchImages(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='../media/matches', blank=True, null=True)
+    caption = models.CharField(max_length=300)
+
+
+class MatchVideos(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='videos')
+    video = models.URLField(blank=True, null=True)
+    caption = models.CharField(max_length=300)

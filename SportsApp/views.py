@@ -65,6 +65,7 @@ class UserCreate(viewsets.ViewSet):
 class LoginView(viewsets.ModelViewSet):
     serializer_class = LoginSerializer
 
+
 class UserTeamView(viewsets.ModelViewSet):
     serializer_class = UserTeamSerializer
 
